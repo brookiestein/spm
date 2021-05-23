@@ -193,9 +193,5 @@ How to perform it? For sure you know ;-)
 ### Some screenshots
 
 ![](screenshots/gui.png)
-![](screenshots/help.png)
-![](screenshots/daemon_monitor.png)
-![](screenshots/log1.png)
-![](screenshots/log2.png)
-![](screenshots/monitor_example.png)
+![](screenshots/cli.png)
 
