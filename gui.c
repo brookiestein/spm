@@ -13,8 +13,8 @@ gui(int* argc, char** argv)
 {
         gtk_init(argc, &argv);
 
-        const size_t width = 390;
-        const size_t height = 70;
+        const int16_t width = 400;
+        const int16_t height = 70;
 
         GtkWidget* window;
         GtkWidget* question_label;
@@ -29,6 +29,7 @@ gui(int* argc, char** argv)
         GtkWidget* reboot_image;
         GtkWidget* suspend_image;
         GtkWidget* exit_image;
+        GtkAccelGroup* accel;
 
         char* icon_file = "resources/icons/icon.png";
         FILE* fp = fopen(icon_file, "r");
@@ -41,11 +42,13 @@ gui(int* argc, char** argv)
                 use_icons = true;
         }
 
+        accel  = gtk_accel_group_new();
         window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(window), "System Power Manager");
         gtk_window_set_default_size(GTK_WINDOW(window), width, height);
         gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
         gtk_window_set_resizable(GTK_WINDOW(window), FALSE);
+        gtk_window_add_accel_group(GTK_WINDOW(window), accel);
 
         if (use_icons)
                 gtk_window_set_icon_from_file(GTK_WINDOW(window), icon_file, NULL);
@@ -58,6 +61,18 @@ gui(int* argc, char** argv)
         reboot_button = gtk_button_new_with_label(REBOOT);
         suspend_button = gtk_button_new_with_label(SUSPEND);
         exit_button = gtk_button_new_with_label("Exit");
+
+        gtk_widget_add_accelerator(shutdown_button, "clicked", accel, GDK_KEY_p, 0, GTK_ACCEL_VISIBLE);
+        gtk_widget_add_accelerator(hibernate_button, "clicked", accel, GDK_KEY_h, 0, GTK_ACCEL_VISIBLE);
+        gtk_widget_add_accelerator(reboot_button, "clicked", accel, GDK_KEY_r, 0, GTK_ACCEL_VISIBLE);
+        gtk_widget_add_accelerator(suspend_button, "clicked", accel, GDK_KEY_s, 0, GTK_ACCEL_VISIBLE);
+        gtk_widget_add_accelerator(exit_button, "clicked", accel, GDK_KEY_Escape, 0, GTK_ACCEL_VISIBLE);
+
+        gtk_widget_set_tooltip_text(shutdown_button, "Shutdown the computer. (P)");
+        gtk_widget_set_tooltip_text(hibernate_button, "Shutdown the computer saving your current session. (H)");
+        gtk_widget_set_tooltip_text(reboot_button, "Reboot the computer. (R)");
+        gtk_widget_set_tooltip_text(suspend_button, "Suspend the computer. (S)");
+        gtk_widget_set_tooltip_text(exit_button, "Close the program. (ESC)");
 
         if (use_icons) {
                 shutdown_image = gtk_image_new_from_file("resources/icons/shutdown.png");
