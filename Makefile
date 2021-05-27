@@ -8,7 +8,7 @@ MKDIR	= mkdir -p
 PREFIX	= /usr/local/bin
 SHARE	= /usr/share/spm
 RES	= resources
-SRC	= spm.c format.c logger.c power_options.c
+SRC	= spm.c format.c logger.c power_options.c battery_monitor.c
 GFXSRC	= gui.c
 OBJ	= ${SRC:.c=.o}
 GFXOBJ	= ${GFXSRC:.c=.o}

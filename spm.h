@@ -10,6 +10,7 @@
 #include "format.h"
 #include "logger.h"
 #include "power_options.h"
+#include "battery_monitor.h"
 
 #ifdef _ENABLE_GUI
 #include "gui.h"

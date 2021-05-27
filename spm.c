@@ -23,15 +23,16 @@ main(int argc, char** argv)
                 return 0;
         }
 
-        const size_t options_size = 5;
+        const size_t options_size = 6;
         const char* large_options[] = {
                 "poweroff",
                 "hibernate",
                 "reboot",
                 "suspend",
+                "monitor",
                 "help"
         };
-        const char short_options[] = { 'p', 'h', 'r', 's', '?' };
+        const char short_options[] = { 'p', 'h', 'r', 's', 'm', '?' };
 
         make_lowercase(&argc, argv);
         make_easier_to_work(&argc, argv);
@@ -70,6 +71,9 @@ usage(void)
         printf("[-]h | [--]hibernate\tHibernate the computer.\n");
         printf("[-]r | [--]reboot\tRestart the computer.\n");
         printf("[-]s | [--]suspend\tSuspend the computer.\n");
+        printf("\nGuardian options:\n");
+        printf("[-]m | [--]monitor\tCheck whether the battery's charge is greater than 15%%.\n");
+        printf("\t\t\tIf not, then suspend the computer.\n");
         printf("\nHelp options:\n");
         printf("[-]? | [--]help\tShow this help and exit.\n");
         printf("\nGUI Options:\n");
@@ -173,6 +177,9 @@ exec_option(const char* option)
                 break;
         case 's':
                 spm_power(SUSPEND);
+                break;
+        case 'm':
+                battery_monitor();
                 break;
         case '?':
                 status = usage();
