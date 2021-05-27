@@ -1,0 +1,2 @@
+* Implement a mechanism to save logs in a file determined by the user.
+* Implement a mechanism to wait a couple of seconds before perform a power operation.
