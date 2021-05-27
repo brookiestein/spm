@@ -2,19 +2,25 @@
 #include "power_options.h"
 
 static void
-exec_option(GtkWidget* caller, gpointer unused)
+exec_option(GtkWidget* caller)
 {
-        (void) unused;
         spm_power(gtk_button_get_label(GTK_BUTTON(caller)));
 }
 
-int
+static void
+spm_exit(void)
+{
+        logger("spm_exit", &spm_exit, "Exiting.\n", stdout);
+        gtk_main_quit();
+}
+
+uint8_t
 gui(int* argc, char** argv)
 {
         gtk_init(argc, &argv);
 
-        const int16_t width = 400;
-        const int16_t height = 70;
+        const uint16_t width = 400;
+        const uint16_t height = 70;
 
         GtkWidget* window;
         GtkWidget* question_label;
@@ -105,7 +111,7 @@ gui(int* argc, char** argv)
         g_signal_connect(hibernate_button, "clicked", G_CALLBACK(exec_option), NULL);
         g_signal_connect(reboot_button, "clicked", G_CALLBACK(exec_option), NULL);
         g_signal_connect(suspend_button, "clicked", G_CALLBACK(exec_option), NULL);
-        g_signal_connect(exit_button, "clicked", gtk_main_quit, NULL);
+        g_signal_connect(exit_button, "clicked", G_CALLBACK(spm_exit), NULL);
 
         gtk_widget_show_all(window);
         gtk_main();

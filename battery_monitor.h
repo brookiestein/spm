@@ -10,6 +10,7 @@
 #include "format.h"
 #include "logger.h"
 #include "power_options.h"
+#include "get_time.h"
 
 #define CAPACITY_FILE "/sys/class/power_supply/BAT0/capacity"
 #define STATUS_FILE "/sys/class/power_supply/BAT0/status"
@@ -20,6 +21,6 @@
 #define MAX_WARNS 3
 #define TIME 20 /* Verify the battery's charge every TIME seconds. */
 
-void battery_monitor(void);
+void* battery_monitor(void* data);
 
 #endif

@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <dbus/dbus.h>
 
@@ -18,7 +19,6 @@
 #define REBOOT "Reboot"
 #define SUSPEND "Suspend"
 
-int leave(DBusError* error, DBusConnection* connection, DBusMessage* message);
-int spm_power(const char* method);
+uint8_t spm_power(const char* method);
 
 #endif

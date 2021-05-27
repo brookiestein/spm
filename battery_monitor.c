@@ -1,19 +1,9 @@
 #include "battery_monitor.h"
 
-static char*
-get_time(void)
+void*
+battery_monitor(void* data)
 {
-        const size_t size = 25;
-        time_t timer = time(NULL);
-        struct tm* ltime = localtime(&timer);
-        char* date = (char*) malloc(size + 1);
-        strftime(date, size, "%c", ltime);
-        return date;
-}
-
-void
-battery_monitor(void)
-{
+        (void) data; /* For now this won't be used. */
         short warnings = 0;
         char* time = get_time();
         char* fmt = "[%s]: Battery monitor started.\n";

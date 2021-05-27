@@ -1,5 +1,5 @@
 CC	:= gcc
-CFLAGS	:= -Os -std=c99 -Wall -Wextra $(shell pkg-config --cflags --libs dbus-1)
+CFLAGS	:= -Os -std=c99 -pthread -Wall -Wextra $(shell pkg-config --cflags --libs dbus-1)
 GFX	= $(shell pkg-config --cflags --libs gtk+-3.0)
 TARGET	= spm
 RM	= rm -fr
@@ -8,7 +8,9 @@ MKDIR	= mkdir -p
 PREFIX	= /usr/local/bin
 SHARE	= /usr/share/spm
 RES	= resources
-SRC	= spm.c format.c logger.c power_options.c battery_monitor.c
+SRC	= spm.c format.c logger.c \
+	  power_options.c get_time.c \
+	  battery_monitor.c
 GFXSRC	= gui.c
 OBJ	= ${SRC:.c=.o}
 GFXOBJ	= ${GFXSRC:.c=.o}

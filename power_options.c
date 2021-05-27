@@ -1,10 +1,10 @@
 #include "power_options.h"
 
-void
+static void
 spm_free(DBusError* error, DBusConnection* connection, DBusMessage* message,
         const char* message_to_log)
 {
-        size_t size = strlen(message_to_log) + 3;
+        uint16_t size = strlen(message_to_log) + 3;
         if (error->message)
                 size += strlen(error->message);
         char* msg;
@@ -25,7 +25,7 @@ spm_free(DBusError* error, DBusConnection* connection, DBusMessage* message,
                 dbus_message_unref(message);
 }
 
-int
+uint8_t
 spm_power(const char* method)
 {
         DBusConnection* connection;
@@ -66,5 +66,5 @@ spm_power(const char* method)
         free(message_to_log);
 
         spm_free(&error, connection, message, "Cleaning");
-        exit(0);
+        return 0;
 }
