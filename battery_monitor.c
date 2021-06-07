@@ -35,8 +35,9 @@ battery_monitor(void* data)
                 bool log = false;
                 fmt = "[%s]: %s, actual battery level: %i%%\n";
                 time = get_time();
-                size = strlen(fmt) + strlen(time) + strlen(status);
-                message = format(size, fmt, time, status, percent);
+                char* real_status = strncmp(status, "Unknown", 7) == 0 ? "Fully charged" : status;
+                size = strlen(fmt) + strlen(time) + strlen(real_status);
+                message = format(size, fmt, time, real_status, percent);
                 logger("battery_monitor", &battery_monitor, message, stdout);
                 free(time);
                 free(message);
