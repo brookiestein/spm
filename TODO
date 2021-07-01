@@ -1,2 +1,3 @@
 * Implement a mechanism to save logs in a file determined by the user.
 * Implement a mechanism to wait a couple of seconds before perform a power operation.
+* Show debug or verbose messages if and only if the user has enabled it through an option such as --debug or --verbose.
