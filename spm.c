@@ -13,31 +13,37 @@ main(int argc, char** argv)
                 return 0;
         }
 
-        const uint8_t options_size = 7;
-        const char* large_options[] = {
-                "poweroff",
-                "hibernate",
-                "reboot",
-                "suspend",
-                "monitor",
-                "daemon",
-                "help",
+        const struct option large_options[] = {
+                { "daemon",       no_argument, 0, 'd' },
+                { "help",         no_argument, 0, 'h' },
+                { "hibernate",    no_argument, 0, 'H' },
+                { "monitor",      no_argument, 0, 'm' },
+                { "poweroff",     no_argument, 0, 'p' },
+                { "reboot",       no_argument, 0, 'r' },
+                { "suspend",      no_argument, 0, 's' },
+                { NULL, 0, NULL, 0 }
         };
-        const char short_options[] = { 'p', 'h', 'r', 's', 'm', 'd', '?' };
-
-        make_lowercase(&argc, argv);
-        make_easier_to_work(&argc, argv);
-
-        char* unrecognized_args[argc];
-        size_t unrecognized_args_size = 0;
 
         Options options;
-        options.daemon = false;
-        options.monitor = false;
 
-        look_for_an_option(&argc, argv, large_options,
-                        short_options, &options_size, unrecognized_args,
-                        &unrecognized_args_size, &options);
+        int option = 0;
+        while ((option = getopt_long(argc, argv, "dhHmprs", large_options, NULL)) >= 0) {
+                switch (option)
+                {
+                case 'd': options.daemon = true; break;
+                case 'm': options.monitor = true; break;
+                case 'h': return usage();
+                case 'H': options.hibernate = true; break;
+                case 'p': options.poweroff = true; break;
+                case 'r': options.reboot = true; break;
+                case 's': options.suspend = true; break;
+                default: fprintf(stderr, "Unknown option: %c\n", optopt);
+                }
+        }
+
+        uint8_t value = exec_option(&options);
+        if (value > 0)
+                return 0; /* A power option was performed! Everything's ok. */
 
         /* TODO: Check whether this works as expected. */
         if (options.daemon)
@@ -75,32 +81,13 @@ main(int argc, char** argv)
                 }
         }
 
-        pthread_t monitor_id;
-        if (options.monitor)
+        if (options.monitor) {
+                pthread_t monitor_id;
                 pthread_create(&monitor_id, NULL, &battery_monitor, NULL);
-
-        uint8_t status = exec_option(&options);
-
-        if (unrecognized_args_size > 0)
-        {
-                const char fmt[] = "Argument%s not recognized: ";
-                const size_t size = strlen(fmt);
-                char* message = format(size, fmt, (unrecognized_args_size > 1 ? "s" : ""));
-                logger("main", &main, message, stderr);
-                free(message);
-
-                for (size_t i = 0; i < unrecognized_args_size; ++i)
-                {
-                        printf("%s%c", unrecognized_args[i],
-                                (i < unrecognized_args_size - 1 ? ' ' : '\n'));
-                        free(unrecognized_args[i]);
-                }
+                pthread_join(monitor_id, NULL);
         }
 
-        if (options.monitor)
-                pthread_join(monitor_id, NULL);
-
-        return status;
+        return 0;
 }
 
 uint8_t
@@ -108,154 +95,61 @@ usage(void)
 {
         printf("SPM usage:\n\n");
         printf("Power options:\n");
-        printf("[-]p | [--]poweroff\tShutdowns the computer.\n");
-        printf("[-]h | [--]hibernate\tHibernates the computer.\n");
-        printf("[-]r | [--]reboot\tRestarts the computer.\n");
-        printf("[-]s | [--]suspend\tSuspends the computer.\n");
+        printf("-p | --poweroff\tShutdowns the computer.\n");
+        printf("-H | --hibernate\tHibernates the computer.\n");
+        printf("-r | --reboot\tRestarts the computer.\n");
+        printf("-s | --suspend\tSuspends the computer.\n");
         printf("\nGuardian options:\n");
-        printf("[-]d | [--]daemon\tRun as daemon. Useful when combined with -m, and -f.\n");
-        printf("[-]m | [--]monitor\tChecks whether the battery's charge is greater than 15%%.\n");
+        printf("-d | --daemon\tRun as daemon. Useful when combined with -m, and -f.\n");
+        printf("-m | --monitor\tChecks whether the battery's charge is greater than 15%%.\n");
         printf("\t\t\tIf not, then suspends the computer.\n");
         printf("\nFile options:\n");
-        printf("[-]f | [--]file file\tFile where log is going to be saved.\n");
+        printf("-f | --file file\tFile where log is going to be saved.\n");
         printf("\nHelp options:\n");
-        printf("[-]? | [--]help\t\tShows this help and exit.\n");
+        printf("-h | --help\t\tShows this help and exit.\n");
         printf("\nGUI Options:\n");
         printf("Run without arguments to show the GUI.\n");
         return 0;
 }
 
-char**
-make_lowercase(const int* argc, char** argv)
-{
-        for (int i = 1; i < *argc; ++i) {
-                const size_t size = strlen(argv[i]);
-                for (size_t j = 0; j < size; ++j)
-                        argv[i][j] = tolower(argv[i][j]);
-        }
-        return argv;
-}
-
-char*
-spm_strncpy(char* dest, const char* src, const size_t* start, const size_t* end)
-{
-        for (size_t i = *start, j = 0; i < *end; ++i, ++j)
-                dest[j] = src[i];
-        dest[strlen(dest) - *start] = '\0';
-        return dest;
-}
-
-char**
-make_easier_to_work(const int* argc, char** argv)
-{
-        for (int i = 0; i < *argc; ++i) {
-                bool delete = false;
-                size_t start = 0;
-
-                if (argv[i][0] == '-') {
-                        delete = true;
-                        ++start;
-                        if (strlen(argv[i]) > 1 && argv[i][1] == '-')
-                                ++start;
-                }
-
-                if (delete) {
-                        const size_t size = strlen(argv[i]);
-                        char* tmp = (char*) malloc(size * sizeof(char));
-                        strncpy(tmp, argv[i], size);
-                        spm_strncpy(argv[i], tmp, &start, &size);
-                        free(tmp);
-                }
-        }
-        return argv;
-}
-
-Options*
-look_for_an_option(const int* argc,
-        char** argv, const char *large_options[],
-        const char* short_options, const uint8_t* options_size,
-        char** unrecognized, size_t* size, Options* options)
-{
-        /* char *tmp = NULL; */
-        uint16_t len = 0;
-        for (int i = 1; i < *argc; ++i) {
-                bool found_options = false;
-                for (size_t j = 0; j < *options_size; ++j) {
-                        if (strncmp(argv[i], large_options[j], strlen(large_options[j])) == 0
-                                || (argv[i][0] == short_options[j] && strlen(argv[i]) == 1))
-                        {
-                                found_options = true;
-                                switch (short_options[j])
-                                {
-                                case 'd': options->daemon = true; break;
-                                case 'm': options->monitor = true; break;
-                                case 'p': options->poweroff = true; break;
-                                case 'h': options->hibernate = true; break;
-                                case 'r': options->reboot = true; break;
-                                case 's': options->suspend = true; break;
-                                case '?': options->help = true; break;
-                                }
-                        }
-                }
-
-                if (!found_options)
-                {
-                        len = strlen(argv[i]);
-                        unrecognized[*size] = (char*) malloc(len * sizeof(char));
-                        strncpy(unrecognized[*size], argv[i], len);
-                        ++(*size);
-                }
-        }
-        return options;
-}
-
-bool
-confirm(void)
-{
-        printf("Continue? [y/n]: ");
-        const uint8_t size = UINT8_MAX;
-        char* input = (char*) malloc(size * sizeof(char));
-        input = fgets(input, size, stdin);
-        bool response = !strncmp(input, "y", 1);
-        free(input);
-        return response;
-}
-
+/* This function will return one of the following values:
+ * 0 = nothing was done.
+ * 1 = shutdown was performed.
+ * 2 = hibernate was performed.
+ * 3 = reboot was performed.
+ * 4 = suspend was performed.
+ */
 uint8_t
 exec_option(const Options *options)
 {
-        if (options->help)
-                return usage();
-
-        bool perform = true;
-
         if ((options->poweroff || options->hibernate) && (options->reboot || options->suspend))
         {
-                logger("exec_option", &exec_option, "Running more than one power option.\n", stdout);
-                printf("Please, confirm that want really want to perform them. This is not recommendable!\n");
-                perform = confirm();
-                if (perform)
-                {
-                        logger("exec_option", &exec_option, "Performing anyway. Just take in account that \
-the options will be performed in the following order:\n", stdout);
-                        logger("exec_option", &exec_option,
-                        "\n- Shutdown\n- Hibernate\n- Reboot\n- Suspend\n",
+                logger("exec_option", &exec_option,
+                        "User has chose to run more than one power option. Turning off...\n",
                         stdout);
-                }
-                else
-                {
-                        logger("exec_option", &exec_option, "Performing nothing.\n", stdout);
-                        return 1;
-                }
+                spm_power(POWEROFF);
+                return 1;
         }
 
-        if (options->poweroff)
+        if (options->poweroff) {
                 spm_power(POWEROFF);
-        if (options->hibernate)
+                return 1;
+        }
+
+        if (options->hibernate) {
                 spm_power(HIBERNATE);
-        if (options->reboot)
+                return 2;
+        }
+
+        if (options->reboot) {
                 spm_power(REBOOT);
-        if (options->suspend)
+                return 3;
+        }
+
+        if (options->suspend) {
                 spm_power(SUSPEND);
+                return 4;
+        }
+
         return 0;
 }
