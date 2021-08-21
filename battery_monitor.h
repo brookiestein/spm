@@ -21,6 +21,8 @@
 #define MAX_WARNS 3
 #define TIME 20 /* Verify the battery's charge every TIME seconds. */
 
+extern bool debug;
+
 void* battery_monitor(void* data);
 
 #endif

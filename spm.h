@@ -21,6 +21,7 @@
 
 typedef struct
 {
+        char* locker_cmd;
         bool daemon;
         bool monitor;
         bool poweroff;
@@ -30,7 +31,11 @@ typedef struct
         bool help;
 } Options;
 
+bool debug;
+char* log_file;
+
 uint8_t usage(void);
 uint8_t exec_option(const Options* options);
+void* run_locker(void* locker_cmd);
 
 #endif
