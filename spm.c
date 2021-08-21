@@ -4,50 +4,55 @@ int
 main(int argc, char** argv)
 {
         debug = false;
-        if (argc == 1) {
+        prog_name = argv[0];
+
+        if (argc < 2) {
 #ifdef _ENABLE_GUI
                 return gui(&argc, argv);
 #else
-                logger("main", (debug ? &main : NULL)
-                        , "The program was not compiled with GUI support.\n"
-                        , stderr);
+                logger("main", "The program was not compiled with GUI support.\n", stderr);
 #endif
                 return 0;
         }
 
         const struct option large_options[] = {
-                { "daemon",       no_argument, 0, 'd' },
-                { "debug",        no_argument, 0, 'D' },
-                { "file",required_argument,    0, 'f' },
-                { "help",         no_argument, 0, 'h' },
-                { "hibernate",    no_argument, 0, 'H' },
-                { "monitor",      no_argument, 0, 'm' },
-                { "locker",required_argument,  0, 'l' },
-                { "poweroff",     no_argument, 0, 'p' },
-                { "reboot",       no_argument, 0, 'r' },
-                { "suspend",      no_argument, 0, 's' },
+                { "daemon",     no_argument, 0, 'd' },
+                { "debug",      no_argument, 0, 'D' },
+                { "file",required_argument,  0, 'f' },
+                { "help",       no_argument, 0, 'h' },
+                { "hibernate",  no_argument, 0, 'H' },
+                { "monitor",    no_argument, 0, 'm' },
+                { "locker",required_argument,0, 'l' },
+                { "poweroff",   no_argument, 0, 'p' },
+                { "reboot",     no_argument, 0, 'r' },
+                { "suspend",    no_argument, 0, 's' },
+                { "verbose",    no_argument, 0, 'v' },
+                { "wait",required_argument,  0, 'w' },
                 { NULL, 0, NULL, 0 }
         };
 
         Options options = {
                 .locker_cmd = NULL,
-                .daemon = false,
                 .help = false,
                 .hibernate = false,
                 .monitor = false,
                 .poweroff = false,
                 .reboot = false,
-                .suspend = false
+                .suspend = false,
+                .time_to_wait = 0
         };
 
+        as_daemon = false;
+        verbose = false;
         log_file = NULL;
 
         int option = 0;
-        while ((option = getopt_long(argc, argv, "dDf:hHl:mprs", large_options, NULL)) >= 0) {
+        while ((option = getopt_long(argc, argv, "dDf:hHl:mprsw:v", large_options, NULL)) >= 0)
+        {
                 switch (option)
                 {
                 case 'f': log_file = optarg; break;
-                case 'd': options.daemon = true; break;
+                case 'd': as_daemon = true; break;
                 case 'D': debug = true; break;
                 case 'm': options.monitor = true; break;
                 case 'l': options.locker_cmd = optarg; break;
@@ -56,6 +61,8 @@ main(int argc, char** argv)
                 case 'p': options.poweroff = true; break;
                 case 'r': options.reboot = true; break;
                 case 's': options.suspend = true; break;
+                case 'v': verbose = true; break;
+                case 'w': options.time_to_wait = atoi(optarg); break;
                 default: fprintf(stderr, "Unknown option: %c\n", optopt);
                 }
         }
@@ -65,20 +72,19 @@ main(int argc, char** argv)
                 return 0; /* A power option was performed! Everything's ok. */
 
         /* TODO: Check whether this works as expected. */
-        if (options.daemon)
+        if (as_daemon)
         {
                 if (!options.monitor) {
-                        logger("main", (debug ? &main : NULL),
-                                "Monitor option is not set. Ignoring daemon option.\n", stderr);
+                        logger("main",
+                                "Monitor option is not set. Ignoring daemon option.\n",
+                                stderr);
                 } else {
-                        logger("main", (debug ? &main : NULL),
-                                "Trying to run as a daemon...\n", stdout);
+                        logger("main", "Trying to run as a daemon...\n", stdout);
                         pid_t pid;
                         pid_t sid;
                         pid = fork();
                         if (pid < 0) {
-                                logger("main", (debug ? &main : NULL),
-                                        "Error while forking.\n", stderr);
+                                logger("main", "Error while forking.\n", stderr);
                                 return EXIT_FAILURE;
                         } else if (pid > 0) {
                                 return EXIT_SUCCESS;
@@ -87,30 +93,36 @@ main(int argc, char** argv)
                         umask(0);
                         sid = setsid();
                         if (sid < 0) {
-                                logger("main", (debug ? &main : NULL),
-                                        "Error while setting sid.\n", stderr);
+                                logger("main", "Error while setting sid.\n", stderr);
                                 return EXIT_FAILURE;
                         }
 
                         if ((chdir("/")) < 0) {
-                                logger("main", (debug ? &main : NULL),
-                                        "Error while changing directory.\n", stderr);
+                                logger("main", "Error while changing directory.\n", stderr);
                                 return EXIT_FAILURE;
                         }
 
                         close(STDIN_FILENO);
                         close(STDOUT_FILENO);
                         close(STDERR_FILENO);
-                }
-        }
 
-        if (options.monitor) {
-                pthread_t monitor_id;
-                pthread_create(&monitor_id, NULL, &battery_monitor, NULL);
-                pthread_join(monitor_id, NULL);
+                        monitorize(options.monitor);
+                }
+        } else {
+                monitorize(options.monitor);
         }
 
         return 0;
+}
+
+void
+monitorize(bool monitor)
+{
+        if (monitor) {
+                pthread_t id;
+                pthread_create(&id, NULL, battery_monitor, NULL);
+                pthread_join(id, NULL);
+        }
 }
 
 uint8_t
@@ -122,15 +134,20 @@ usage(void)
         printf("-H | --hibernate\tHibernates the computer.\n");
         printf("-r | --reboot\t\tRestarts the computer.\n");
         printf("-s | --suspend\t\tSuspends the computer.\n");
-        printf("-l | --locker\t\tScreen locker which would be run when suspending.\n");
         printf("\nGuardian options:\n");
         printf("-d | --daemon\t\tRun as daemon. Useful when combined with -m, and -f.\n");
         printf("-m | --monitor\t\tChecks whether the battery's charge is greater than 15%%.\n");
         printf("\t\t\tIf not, then suspends the computer.\n");
         printf("\nFile options:\n");
-        printf("-f | --file file\tFile where log is going to be saved.\n");
+        printf("-f | --file=file\tFile where log is going to be saved.\n");
         printf("\nHelp options:\n");
         printf("-h | --help\t\tShows this help and exit.\n");
+        printf("\nVerbose options:\n");
+        printf("-D | --debug\t\tShows debug information.\n");
+        printf("-v | --verbose\t\tBe verbose.\n");
+        printf("\nMisc options:\n");
+        printf("-l | --locker=locker\tScreen locker which would be run when suspending.\n");
+        printf("-w | --wait=sec\t\tTime to wait before performing a power option.\n");
         printf("\nGUI Options:\n");
         printf("Run without arguments to show the GUI.\n");
         return 0;
@@ -148,14 +165,16 @@ exec_option(const Options *options)
 {
         if ((options->poweroff || options->hibernate) && (options->reboot || options->suspend))
         {
-                logger("exec_option", (debug ? &exec_option : NULL),
-                        "User has chose to run more than one power option. Turning off...\n",
+                logger("exec_option",
+                        "More than one option chosen. Turning off...\n",
                         stdout);
                 spm_power(POWEROFF);
                 return 1;
         }
 
         if (options->poweroff) {
+                if (options->time_to_wait > 0)
+                        run_timer(options->time_to_wait);
                 spm_power(POWEROFF);
                 return 1;
         }
@@ -163,6 +182,8 @@ exec_option(const Options *options)
         if (options->hibernate) {
                 pthread_t locker_id;
                 if (options->locker_cmd) {
+                        if (options->time_to_wait > 0)
+                                run_timer(options->time_to_wait);
                         pthread_create(&locker_id, NULL, run_locker, options->locker_cmd);
                         spm_power(HIBERNATE);
                         pthread_join(locker_id, NULL);
@@ -173,6 +194,8 @@ exec_option(const Options *options)
         }
 
         if (options->reboot) {
+                if (options->time_to_wait > 0)
+                        run_timer(options->time_to_wait);
                 spm_power(REBOOT);
                 return 3;
         }
@@ -180,10 +203,14 @@ exec_option(const Options *options)
         if (options->suspend) {
                 pthread_t locker_id;
                 if (options->locker_cmd) {
+                        if (options->time_to_wait > 0)
+                                run_timer(options->time_to_wait);
                         pthread_create(&locker_id, NULL, run_locker, options->locker_cmd);
                         spm_power(SUSPEND);
                         pthread_join(locker_id, NULL);
                 } else {
+                        if (options->time_to_wait > 0)
+                                run_timer(options->time_to_wait);
                         spm_power(SUSPEND);
                 }
                 return 4;
@@ -199,4 +226,16 @@ run_locker(void* locker_cmd)
         FILE* cmd_out = popen(locker, "r");
         pclose(cmd_out);
         return locker_cmd;
+}
+
+void
+run_timer(const size_t seconds)
+{
+        for (size_t i = seconds; i > 0; --i) {
+                const size_t fmt_size = 23;
+                char* message = format(fmt_size, "%ld seconds remaining...\n", i);
+                logger("run_timer", message, stdout);
+                free(message);
+                sleep(1);
+        }
 }

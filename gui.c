@@ -2,16 +2,16 @@
 #include "power_options.h"
 
 static void
-exec_option(GtkWidget* caller)
+spm_exit(void)
 {
-        spm_power(gtk_button_get_label(GTK_BUTTON(caller)));
+        gtk_main_quit();
 }
 
 static void
-spm_exit(void)
+exec_option(GtkWidget* caller)
 {
-        logger("spm_exit", &spm_exit, "Exiting.\n", stdout);
-        gtk_main_quit();
+        spm_power(gtk_button_get_label(GTK_BUTTON(caller)));
+        spm_exit();
 }
 
 uint8_t

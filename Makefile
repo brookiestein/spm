@@ -22,7 +22,7 @@ nogui : ${OBJ}
 	${CC} ${CFLAGS} ${SRC} -o ${TARGET}
 
 clean :
-	${RM} ${OBJ} ${GFXOBJ}
+	${RM} ${OBJ} ${GFXOBJ} ${TARGET}
 
 install :
 	${MKDIR} ${SHARE}

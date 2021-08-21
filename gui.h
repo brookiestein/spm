@@ -5,8 +5,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "format.h"
-#include "logger.h"
 #include "power_options.h"
 
 uint8_t gui(int* argc, char **argv);

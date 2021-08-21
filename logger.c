@@ -1,7 +1,7 @@
 #include "logger.h"
 
 void
-logger(const char* caller_name, const void* caller, const char* message, FILE* stream)
+logger(const char* caller_name, const char* message, FILE* stream)
 {
         if (log_file) {
                 FILE* filelog = fopen(log_file, "r");
@@ -13,13 +13,16 @@ logger(const char* caller_name, const void* caller, const char* message, FILE* s
                         filelog = fopen(log_file, "w");
                 }
 
-                fprintf(filelog, "%s: %s", caller_name, message);
+                perform(caller_name, message, filelog);
                 fclose(filelog);
         }
 
-        if (caller) {
-                fprintf(stream, "%s(%p): %s", caller_name, caller, message);
-        } else {
-                fprintf(stream, "%s: %s", caller_name, message);
-        }
+        if (verbose && !as_daemon)
+                perform(caller_name, message, stream);
+}
+
+void
+perform(const char* caller_name, const char* message, FILE* stream)
+{
+        fprintf(stream, "%s: %s", (debug ? caller_name : prog_name), message);
 }

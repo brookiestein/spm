@@ -14,7 +14,7 @@ spm_free(DBusError* error, DBusConnection* connection, DBusMessage* message,
         else
                 msg = format(size + 1, "%s: %s\n", message_to_log, error->message);
 
-        logger("spm_free", &spm_free, msg, stderr);
+        logger("spm_free", msg, stderr);
         free(msg);
 
         if (error != NULL)
@@ -62,7 +62,7 @@ spm_power(const char* method)
         }
 
         char* message_to_log = format(strlen(method) + 5, "%s-ing\n", method);
-        logger("spm_power", &spm_power, message_to_log, stdout);
+        logger("spm_power", message_to_log, stdout);
         free(message_to_log);
 
         spm_free(&error, connection, message, "Cleaning");

@@ -11,7 +11,7 @@ battery_monitor(void* data)
         char* message = format(size, fmt, time);
 
         free(time);
-        logger("battery_monitor", (debug ? &battery_monitor : NULL), message, stdout);
+        logger("battery_monitor", message, stdout);
         free(message);
 
         while (true) {
@@ -41,7 +41,7 @@ battery_monitor(void* data)
                 size = strlen(fmt) + strlen(time) + strlen(real_status);
                 message = format(size, fmt, time, real_status, percent);
 
-                logger("battery_monitor", (debug ? &battery_monitor : NULL), message, stdout);
+                logger("battery_monitor", message, stdout);
                 free(time);
                 free(message);
 
@@ -68,7 +68,7 @@ battery_monitor(void* data)
 
                 if (log)
                 {
-                        logger("battery_monitor", (debug ? &battery_monitor : NULL), message, stdout);
+                        logger("battery_monitor", message, stdout);
                         free(time);
                         free(message);
                 }

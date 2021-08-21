@@ -1,3 +1,1 @@
-* Implement a mechanism to wait a couple of seconds before perform a power operation.
-* Show verbose messages if and only if the user has enabled it through a --verbose option.
-* Fix --file option which causes the program to die when running as a daemon.
+* Fix the --file option which causes the program to die when running as a daemon.

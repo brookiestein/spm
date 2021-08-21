@@ -22,20 +22,25 @@
 typedef struct
 {
         char* locker_cmd;
-        bool daemon;
         bool monitor;
         bool poweroff;
         bool hibernate;
         bool reboot;
         bool suspend;
         bool help;
+        size_t time_to_wait;
 } Options;
 
+bool as_daemon;
 bool debug;
+bool verbose;
 char* log_file;
+const char* prog_name;
 
 uint8_t usage(void);
 uint8_t exec_option(const Options* options);
 void* run_locker(void* locker_cmd);
+void run_timer(size_t seconds);
+void monitorize(bool monitor);
 
 #endif
