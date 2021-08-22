@@ -1,1 +1,1 @@
-* Fix the --file option which causes the program to die when running as a daemon.
+* Use a DEFAULT_LOCKER macro in order not to ask the user always when running the GUI.
