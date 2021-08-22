@@ -44,7 +44,7 @@ main(int argc, char** argv)
 
         as_daemon = false;
         verbose = false;
-        log_file = NULL;
+        log_file = "/tmp/spm.log";
 
         int option = 0;
         while ((option = getopt_long(argc, argv, "dDf:hHl:mprsw:v", large_options, NULL)) >= 0)
