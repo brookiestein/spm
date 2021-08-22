@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "power_options.h"
 

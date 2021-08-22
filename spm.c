@@ -27,12 +27,12 @@ main(int argc, char** argv)
                 { "reboot",     no_argument, 0, 'r' },
                 { "suspend",    no_argument, 0, 's' },
                 { "verbose",    no_argument, 0, 'v' },
+                { "version",    no_argument, 0, 'V' },
                 { "wait",required_argument,  0, 'w' },
                 { NULL, 0, NULL, 0 }
         };
 
         Options options = {
-                .locker_cmd = NULL,
                 .help = false,
                 .hibernate = false,
                 .monitor = false,
@@ -45,9 +45,10 @@ main(int argc, char** argv)
         as_daemon = false;
         verbose = false;
         log_file = "/tmp/spm.log";
+        locker_cmd = NULL;
 
         int option = 0;
-        while ((option = getopt_long(argc, argv, "dDf:hHl:mprsw:v", large_options, NULL)) >= 0)
+        while ((option = getopt_long(argc, argv, "dDf:hHl:mprsw:vV", large_options, NULL)) >= 0)
         {
                 switch (option)
                 {
@@ -55,13 +56,14 @@ main(int argc, char** argv)
                 case 'd': as_daemon = true; break;
                 case 'D': debug = true; break;
                 case 'm': options.monitor = true; break;
-                case 'l': options.locker_cmd = optarg; break;
+                case 'l': locker_cmd = optarg; break;
                 case 'h': return usage();
                 case 'H': options.hibernate = true; break;
                 case 'p': options.poweroff = true; break;
                 case 'r': options.reboot = true; break;
                 case 's': options.suspend = true; break;
                 case 'v': verbose = true; break;
+                case 'V': printf("%s\n", version); return 0;
                 case 'w': options.time_to_wait = atoi(optarg); break;
                 default: fprintf(stderr, "Unknown option: %c\n", optopt);
                 }
@@ -150,6 +152,7 @@ usage(void)
         printf("\nMisc options:\n");
         printf("-l | --locker=locker\tScreen locker which would be run when suspending.\n");
         printf("-w | --wait=sec\t\tTime to wait before performing a power option.\n");
+        printf("-V | --version\t\tShows program version and exists.\n");
         printf("\nGUI Options:\n");
         printf("Run without arguments to show the GUI.\n");
         return 0;
@@ -182,16 +185,9 @@ exec_option(const Options *options)
         }
 
         if (options->hibernate) {
-                pthread_t locker_id;
-                if (options->locker_cmd) {
-                        if (options->time_to_wait > 0)
-                                run_timer(options->time_to_wait);
-                        pthread_create(&locker_id, NULL, run_locker, options->locker_cmd);
-                        spm_power(HIBERNATE);
-                        pthread_join(locker_id, NULL);
-                } else {
-                        spm_power(HIBERNATE);
-                }
+                if (options->time_to_wait > 0)
+                        run_timer(options->time_to_wait);
+                spm_power(HIBERNATE);
                 return 2;
         }
 
@@ -203,31 +199,13 @@ exec_option(const Options *options)
         }
 
         if (options->suspend) {
-                pthread_t locker_id;
-                if (options->locker_cmd) {
-                        if (options->time_to_wait > 0)
-                                run_timer(options->time_to_wait);
-                        pthread_create(&locker_id, NULL, run_locker, options->locker_cmd);
-                        spm_power(SUSPEND);
-                        pthread_join(locker_id, NULL);
-                } else {
-                        if (options->time_to_wait > 0)
-                                run_timer(options->time_to_wait);
-                        spm_power(SUSPEND);
-                }
+                spm_power(SUSPEND);
+                if (options->time_to_wait > 0)
+                        run_timer(options->time_to_wait);
                 return 4;
         }
 
         return 0;
-}
-
-void*
-run_locker(void* locker_cmd)
-{
-        char* locker = (char*) locker_cmd;
-        FILE* cmd_out = popen(locker, "r");
-        pclose(cmd_out);
-        return locker_cmd;
 }
 
 void

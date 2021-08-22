@@ -25,6 +25,18 @@ spm_free(DBusError* error, DBusConnection* connection, DBusMessage* message,
                 dbus_message_unref(message);
 }
 
+void*
+lock_as_needed(void* data)
+{
+        const char* method = (char*) data;
+        if (strncmp(method, SUSPEND, strlen(SUSPEND)) == 0
+                || strncmp(method, HIBERNATE, strlen(HIBERNATE)) == 0)
+        {
+                run_locker(locker_cmd);
+        }
+        return data;
+}
+
 uint8_t
 spm_power(const char* method)
 {
@@ -54,6 +66,14 @@ spm_power(const char* method)
                 return 1;
         }
 
+        /* If user wants to lock their screen before suspend or hibernate... */
+        pthread_t lock_id;
+        /* I know what I'm doing is horrible (casting a const pointer to a non-const one),
+         * but the lock_as_needed function although it receives it as a non-const value,
+         * it treats it as a const one.
+         * It's done in this way because of pthread_create requirements. */
+        pthread_create(&lock_id, NULL, lock_as_needed, (void *) method);
+
         dbus_connection_send_with_reply_and_block(connection, message, timeout, &error);
 
         if (dbus_error_is_set(&error)) {
@@ -66,5 +86,6 @@ spm_power(const char* method)
         free(message_to_log);
 
         spm_free(&error, connection, message, "Cleaning");
+        pthread_join(lock_id, NULL);
         return 0;
 }

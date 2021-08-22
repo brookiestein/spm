@@ -1,6 +1,10 @@
 #include "gui.h"
 #include "power_options.h"
 
+#ifdef _ASK_FOR_LOCKER
+#include "ask_for_locker.h"
+#endif
+
 static void
 spm_exit(void)
 {
@@ -8,9 +12,23 @@ spm_exit(void)
 }
 
 static void
-exec_option(GtkWidget* caller)
+exec_option(GtkWidget* caller, gpointer parent)
 {
+        pthread_t id;
+        char* locker = NULL;
+
+#ifdef _ASK_FOR_LOCKER
+        locker = ask_for_locker(GTK_WINDOW(parent));
+#endif
+
+        pthread_create(&id, NULL, run_locker, (void*) locker);
         spm_power(gtk_button_get_label(GTK_BUTTON(caller)));
+
+        if (locker) {
+                g_free(locker);
+                pthread_join(id, NULL);
+        }
+
         spm_exit();
 }
 
@@ -107,10 +125,10 @@ gui(int* argc, char** argv)
         gtk_container_add(GTK_CONTAINER(window), grid_layout);
 
         g_signal_connect(window, "destroy", gtk_main_quit, NULL);
-        g_signal_connect(shutdown_button, "clicked", G_CALLBACK(exec_option), NULL);
-        g_signal_connect(hibernate_button, "clicked", G_CALLBACK(exec_option), NULL);
-        g_signal_connect(reboot_button, "clicked", G_CALLBACK(exec_option), NULL);
-        g_signal_connect(suspend_button, "clicked", G_CALLBACK(exec_option), NULL);
+        g_signal_connect(shutdown_button, "clicked", G_CALLBACK(exec_option), window);
+        g_signal_connect(hibernate_button, "clicked", G_CALLBACK(exec_option), window);
+        g_signal_connect(reboot_button, "clicked", G_CALLBACK(exec_option), window);
+        g_signal_connect(suspend_button, "clicked", G_CALLBACK(exec_option), window);
         g_signal_connect(exit_button, "clicked", G_CALLBACK(spm_exit), NULL);
 
         gtk_widget_show_all(window);

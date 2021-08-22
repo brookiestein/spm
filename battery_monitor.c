@@ -50,7 +50,7 @@ battery_monitor(void* data)
                 {
                         ++warnings;
                         time = get_time();
-                        fmt = "[%s]: Battery's level is arriving to its limit.";
+                        fmt = "[%s]: Battery's level is arriving to its limit.\n";
                         size = strlen(fmt) + strlen(time);
                         message = format(size, fmt, time);
                         log = true;
@@ -59,7 +59,7 @@ battery_monitor(void* data)
                         && strncmp(status, DISCH, strlen(DISCH)) == 0)
                 {
                         time = get_time();
-                        fmt = "[%s]: Battery's level is too low. Going to sleep.";
+                        fmt = "[%s]: Battery's level is too low. Going to sleep.\n";
                         size = strlen(fmt) + strlen(time);
                         message = format(size, fmt, time);
                         suspend = true;
