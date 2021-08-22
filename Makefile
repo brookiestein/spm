@@ -1,4 +1,4 @@
-CC	:= gcc
+CC	:= cc
 CFLAGS	:= -Os -std=c99 -pthread -Wall -Wextra $(shell pkg-config --cflags --libs dbus-1)
 GFX	= $(shell pkg-config --cflags --libs gtk+-3.0)
 TARGET	= spm

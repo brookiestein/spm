@@ -72,45 +72,47 @@ main(int argc, char** argv)
                 return 0; /* A power option was performed! Everything's ok. */
 
         /* TODO: Check whether this works as expected. */
-        if (as_daemon)
-        {
+        if (as_daemon) {
                 if (!options.monitor) {
                         logger("main",
                                 "Monitor option is not set. Ignoring daemon option.\n",
                                 stderr);
-                } else {
-                        logger("main", "Trying to run as a daemon...\n", stdout);
-                        pid_t pid;
-                        pid_t sid;
-                        pid = fork();
-                        if (pid < 0) {
-                                logger("main", "Error while forking.\n", stderr);
-                                return EXIT_FAILURE;
-                        } else if (pid > 0) {
-                                return EXIT_SUCCESS;
-                        }
-
-                        umask(0);
-                        sid = setsid();
-                        if (sid < 0) {
-                                logger("main", "Error while setting sid.\n", stderr);
-                                return EXIT_FAILURE;
-                        }
-
-                        if ((chdir("/")) < 0) {
-                                logger("main", "Error while changing directory.\n", stderr);
-                                return EXIT_FAILURE;
-                        }
-
-                        close(STDIN_FILENO);
-                        close(STDOUT_FILENO);
-                        close(STDERR_FILENO);
-
-                        monitorize(options.monitor);
+                        return EXIT_FAILURE;
                 }
-        } else {
-                monitorize(options.monitor);
+
+                logger("main", "Running as daemon...\n", stdout);
+                pid_t pid;
+                pid_t sid;
+                pid = fork();
+                if (pid < 0) {
+                        logger("main", "Error while forking.\n", stderr);
+                        return EXIT_FAILURE;
+                } else if (pid > 0) {
+                        return EXIT_SUCCESS;
+                }
+
+                umask(0);
+                sid = setsid();
+                if (sid < 0) {
+                        logger("main", "Error while setting sid.\n", stderr);
+                        return EXIT_FAILURE;
+                }
+
+                /* I've seen it's more recommendable to change the directory to /
+                 * but for some reason, the program crashed when set to it, but
+                 * I don't see any problems in moving to /tmp. */
+                if ((chdir("/tmp")) < 0) {
+                        logger("main", "Error while changing directory.\n", stderr);
+                        return EXIT_FAILURE;
+                }
+
+                close(STDIN_FILENO);
+                close(STDOUT_FILENO);
+                close(STDERR_FILENO);
         }
+
+        if (options.monitor)
+                monitorize(options.monitor);
 
         return 0;
 }
