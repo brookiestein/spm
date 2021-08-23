@@ -12,7 +12,6 @@
       - [Getting the sources](#getting-the-sources)
       - [Compilation](#compilation)
     - [Installation](#installation)
-  - [Cleaning the work environment](#cleaning-the-work-environment)
   - [Run](#run)
   - [How can I use it on dwm](#how-can-i-use-it-on-dwm)
     - [Defining a constant](#defining-a-constant)
@@ -43,6 +42,7 @@ things that shouldn't give much work to perform, like e.g. shutdown or reboot th
 
 ### Dependencies:
 ```
+autoreconf
 make (for compiling)
 dbus
 gtk3 (If you want to compile the GUI)
@@ -53,10 +53,10 @@ libnotify
 Depending on your Linux distribution use the corresponding command:
 | Distribution                     | Command                                                                                      |
 |:---------------------------------|----------------------------------------------------------------------------------------------|
-|Debian/Ubuntu and derivatives     |`apt install make dbus libgtk-3-dev elogind libnotify-dev`                                    |
-|Fedora/CentOS/RHEL                |`dnf install make dbus-glib gtk3-devel elogind libnotify`                                     |
-|Gentoo/Funtoo and derivatives     |`emerge --ask sys-devel/make sys-apps/dbus x11-libs/gtk+ x11-libs/libnotify sys-auth/elogind` |
-|Arch Linux/Manjaro and derivatives|`pacman -S make dbus gtk3 elogind libnotify`                                                  |
+|Debian/Ubuntu and derivatives     |`apt install make dbus libgtk-3-dev elogind libnotify-dev autotools-dev`                                    |
+|Fedora/CentOS/RHEL                |`dnf install make dbus-glib gtk3-devel elogind libnotify autoconf`                                     |
+|Gentoo/Funtoo and derivatives     |`emerge --ask sys-devel/make sys-apps/dbus x11-libs/gtk+ x11-libs/libnotify sys-auth/elogind sys-devel/autoconf` |
+|Arch Linux/Manjaro and derivatives|`pacman -S make dbus gtk3 elogind libnotify autoconf`                                                  |
 
 **Remember to execute these commands as user root**
 
@@ -70,28 +70,46 @@ $ git clone https://github.com/brookiestein/spm
 ##### Compilation
 After that proceed to the compilation:
 ```
+$ autoreconf --install
+$ ./configure
 $ make
 ```
 Or
 ```
-$ make nogui
+$ autoreconf --install
+$ ./configure --enable-gui
+$ make
 ```
-If you don't want GUI support.
+If you want SPM to be built with GUI support.
+
+You may want to specify whether SPM asks you for a screen locker or uses a default one with: `--enable-locker` and `--enable-default-locker=locker`. For example, if you want to use `slock` as your default screen locker in SPM, you should do this:
+```
+$ ./configure --enable-default-locker=slock
+```
+`--enable-default-locker` works right out of the box with the GUI, so:
+```
+$ ./configure --enable-default-locker=slock --enable-gui
+```
+Would be a great combination.
+
 ### Installation
 Then install:
 ```
 # make install
 ```
-### Cleaning the work environment
-Finally clean the work environment:
+If you compiled SPM with GUI support, you must do the following:
 ```
-$ make clean
+# make res
 ```
 
 ### Run
-For launching the program: execute in a console the next command:
+For launching the program: execute in a console the next command (If was compiled with GUI support):
 ```
 $ spm
+```
+To learn which options are available:
+```
+$ spm --help
 ```
 
 ### How can I use it on dwm
@@ -141,38 +159,39 @@ static Key keys[] = {
 
 ### Command line options
 The following command line options were added if you don't want GUI.
-|Option                 | Description                                     |
-|:----------------------|-------------------------------------------------|
-|[-]d, [--]daemon       | Put SPM to work like a daemon.                  |
-|[-]f, [--]file[=file]  | File where save a log. (Only for -v)            |
-|[-h], [--]hibernate    | Hibernate the system.                           |
-|[-]l, [--]lid          | Monitors laptop's lid to suspend the system     |
-|                       | when it has been closed.                        |
-|[-]m, [--]monitor      | Monitor your battery's charge.                  |
-|                       | If SPM detects that it is arrives to 15%        |
-|                       | then, will suspend your computer and avoid      |
-|                       | that you lose important work's data.            |
-|[-]p, [--]poweroff     | Turn off the system.                            |
-|[-]r, [--]restart      | Reboot the system.                              |
-|[-]s, [--]suspend      | Suspend the system.                             |
-|[-]v, [--]verbose      | Show the charge percentage each 30 seconds.     |
-|                       | (It only works for -m option)                   |
-|[-]w, [--]wait[=secs]  | Wait for $seconds to finish before do one of    |
-|                       | either hibernate, poweroff, restart or suspend. |
-|[-]?, [--]help         | Give this help list.                            |
-|[-]V, [--]version      | Show the actual version of this program.        |
+|Option              | Description                                             |
+|:-------------------|---------------------------------------------------------|
+|Power options:      |                                                         |
+|-p, --poweroff      | Shutdowns the computer.                                 |
+|-H, --hibernate     | Hibernates the computer.                                |
+|-r, --reboot        | Restarts the computer.                                  |
+|-s, --suspend       | Suspends the computer.                                  |
+|                                                                              |
+|Guardian options:   |                                                         |
+|-d, --daemon        | Run as daemon. Useful when combined with -m, and -f.    |
+|-m, --monitor       | Checks whether the battery's charge is greater than 15%.|
+|                    | If not, then suspends the computer.                     |
+|                    |                                                         |
+|File options:       |                                                         |
+|-f, --file=file     | File where log is going to be saved.                    |
+|                    |                                                         |
+|Help options:       |                                                         |
+|-h, --help          | Shows this help and exit.                               |
+|                                                                              |
+|Verbose options:                                                              |
+|-D, --debug         | Shows debug information.                                |
+|-v, --verbose       | Be verbose.                                             |
+|                                                                              |
+|Misc options:                                                                 |
+|-l, --locker=locker | Screen locker which would be run when suspending.       |
+|-w, --wait=sec      | Time to wait before performing a power option.          |
+|-V, --version       | Shows program version and exits.                        |
+|                                                                              |
+|GUI Options:                                                                  |
+|Run without arguments to show the GUI.                                        |
 
 You can use these parameters for a simple and quick solution. On the other hand, 
 if you want to use the GTK interface, then do not offer any parameters.
-
-NOTE: Some of these arguments are not available yet, they're:
-```
---daemon
---file
---monitor
---wait
-```
-They'll be available soon!
 
 ### Keyboard shortcuts
 If you want to use the GUI, the following keyboard shortcuts may interest you:
