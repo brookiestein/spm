@@ -1,1 +1,1 @@
-* Use a DEFAULT_LOCKER macro in order not to ask the user always when running the GUI.
+* Notify the user through desktop notifications when running as a daemon.
