@@ -1,4 +1,4 @@
-AC_INIT([spm],[1.3],[https://github.com/brookiestein/spm])
+AC_INIT([spm],[1.4],[https://github.com/brookiestein/spm])
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_CONFIG_FILES([Makefile])

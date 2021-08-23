@@ -19,5 +19,5 @@ PFX = /usr/share/spm
 RES = resources
 
 res :
-	$MKDR ${PFX}
-	$CP $RES $PFX
+	${MKDR} ${PFX}
+	${CP} ${RES} ${PFX}

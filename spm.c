@@ -152,7 +152,7 @@ usage(void)
         printf("\nMisc options:\n");
         printf("-l | --locker=locker\tScreen locker which would be run when suspending.\n");
         printf("-w | --wait=sec\t\tTime to wait before performing a power option.\n");
-        printf("-V | --version\t\tShows program version and exists.\n");
+        printf("-V | --version\t\tShows program version and exits.\n");
         printf("\nGUI Options:\n");
         printf("Run without arguments to show the GUI.\n");
         return 0;
@@ -199,9 +199,9 @@ exec_option(const Options *options)
         }
 
         if (options->suspend) {
-                spm_power(SUSPEND);
                 if (options->time_to_wait > 0)
                         run_timer(options->time_to_wait);
+                spm_power(SUSPEND);
                 return 4;
         }
 
@@ -212,8 +212,9 @@ void
 run_timer(const size_t seconds)
 {
         for (size_t i = seconds; i > 0; --i) {
-                const size_t fmt_size = 23;
-                char* message = format(fmt_size, "%ld seconds remaining...\n", i);
+                const char* fmt = "%ld seconds remaining...\n";
+                const size_t fmt_size = strlen(fmt);
+                char* message = format(fmt_size, fmt, i);
                 logger("run_timer", message, stdout);
                 free(message);
                 sleep(1);

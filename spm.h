@@ -36,7 +36,7 @@ bool verbose;
 char* log_file;
 const char* prog_name;
 char* locker_cmd;
-const char* version = "SPM v1.3";
+const char* version = "SPM v1.4";
 
 uint8_t usage(void);
 uint8_t exec_option(const Options* options);
