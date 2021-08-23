@@ -1,4 +1,4 @@
-AC_INIT([spm],[1.4],[https://github.com/brookiestein/spm])
+AC_INIT([spm],[1.4.1],[https://github.com/brookiestein/spm])
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_CONFIG_FILES([Makefile])
@@ -20,13 +20,22 @@ then
 fi
 
 AC_ARG_ENABLE([locker],
-        [  --enable-locker    Run a user-defined screen locker before suspending or hibernating],
+        [  --enable-locker    Run a user-defined screen locker before suspending or hibernating when using gui],
         [case "${enableval}" in
          yes) locker=true ;;
          no) locker=false ;;
          *) AC_MSG_ERROR([bad value ${enableval} for --enable-locker]) ;;
         esac],[locker=false])
 AM_CONDITIONAL([LOCKER], [test x$locker = xtrue])
+
+AC_ARG_ENABLE([default_locker],
+        [  --enable-default-locker[=locker] Default screen locker to run before suspending or hibernating (overrides --enable-locker)],
+        [default_locker="${enableval}"])
+
+if test -n "$default_locker"
+then
+        CPPFLAGS="$CPPFLAGS -D_DEFAULT_LOCKER=\\\"$default_locker\\\""
+fi
 
 if test "x$locker" = "xtrue"
 then

@@ -17,7 +17,9 @@ exec_option(GtkWidget* caller, gpointer parent)
         pthread_t id;
         char* locker = NULL;
 
-#ifdef _ASK_FOR_LOCKER
+#ifdef _DEFAULT_LOCKER
+        locker = _DEFAULT_LOCKER;
+#elif _ASK_FOR_LOCKER
         locker = ask_for_locker(GTK_WINDOW(parent));
 #endif
 
@@ -25,7 +27,9 @@ exec_option(GtkWidget* caller, gpointer parent)
         spm_power(gtk_button_get_label(GTK_BUTTON(caller)));
 
         if (locker) {
+#ifndef _DEFAULT_LOCKER
                 g_free(locker);
+#endif
                 pthread_join(id, NULL);
         }
 
