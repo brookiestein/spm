@@ -148,11 +148,9 @@ The following command line options were added if you don't want GUI.
 |-H, --hibernate     | Hibernates the computer.                                |
 |-r, --reboot        | Restarts the computer.                                  |
 |-s, --suspend       | Suspends the computer.                                  |
-|                    |                                                         |
+|-t, --time=sec      | Time to wait before performing a power option.          |
 |Help options:       |                                                         |
 |-h, --help          | Shows this help and exit.                               |
-|-t, --time=sec      | Time to wait before performing a power option.          |
-|                                                                              |
 |GUI Options:                                                                  |
 |Run without arguments to show the GUI.                                        |
 
