@@ -79,8 +79,6 @@ main(int argc, char *argv[])
 #else
 	 usage(true);
 #endif
-
-	 return 0;
 }
 
 void

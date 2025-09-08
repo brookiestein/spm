@@ -35,7 +35,7 @@ spm_exec(enum POWER_OPTION option)
 	 dbus_connection_send_with_reply_and_block(connection, message, DBUS_TIMEOUT_USE_DEFAULT, &error);
 	 if (dbus_error_is_set(&error)) {
 		  spm_free(&error, connection, message);
-		  die("An error occurred while send the DBus message: '%s'.", METHOD);
+		  die("An error occurred while sending the DBus message: '%s'.", METHOD);
 	 }
 
 	 spm_free(&error, connection, message);
