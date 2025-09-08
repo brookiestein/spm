@@ -172,3 +172,7 @@ Also you can declare variables for use the shortcuts by way of that you
 don't need execute the GUI to perform any of the options SPM allows you to do.
 
 How to perform it? For sure you know ;-)
+
+### Screenshots
+![Graphic User Interface](assets/gui.png)
+![Command Line](assets/cli.png)
