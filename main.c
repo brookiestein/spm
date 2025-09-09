@@ -29,16 +29,19 @@ main(int argc, char *argv[])
 		  { "poweroff",       no_argument,       NULL,    'p' },
 		  { "reboot",         no_argument,       NULL,    'r' },
 		  { "suspend",        no_argument,       NULL,    's' },
+		  { "version",        no_argument,       NULL,    'v' },
 		  { NULL,             0,                 NULL,     0  }
 	 };
 
 #ifdef ENABLE_GUI
 	 enum POWER_OPTION defaultOption = POWEROFF;
 	 int seconds = 60;
-	 const char *shortOptions = "d:hHprst:";
+	 const char *shortOptions = "d:hHprst:v";
 #else
-	 const char *shortOptions = "hHprs";
+	 const char *shortOptions = "hHprsv";
 #endif
+
+	 __attribute__((cleanup(free_version))) char *version = NULL;
 
 	 int option = -1;
 	 while ((option = getopt_long(argc, argv, shortOptions, longOptions, NULL)) >= 0) {
@@ -67,6 +70,10 @@ main(int argc, char *argv[])
 			   return 0;
 		  case 's':
 			   spm_exec(SUSPEND);
+			   return 0;
+		  case 'v':
+			   version = get_version(argv[0]);
+			   printf("%s\n", version);
 			   return 0;
 		  default:
 			   fprintf(stderr, "Unknown option: %c\n", optopt);
@@ -98,6 +105,7 @@ usage(bool shouldExitAbnormally)
 	 printf("-t | --time              Time, in seconds, to wait before executing the default option "
                                       "or any value < 0 to disable (Default to 60 seconds).\n");
 #endif
+     printf("-v | --version           Show version information.\n");
 	 putchar('\n');
 
 	 exit(shouldExitAbnormally ? 1 : 0);
@@ -108,6 +116,10 @@ enum POWER_OPTION
 guessOption(const char *value)
 {
 	 size_t size = strlen(value);
+     if (size >= 64) { // Don't allow input excessively long.
+         die("Option too long!\n\n%s\n\nSee --help to know which power options are available.", value);
+     }
+
 	 char str[size];
 
 	 for (size_t i = 0; i < size; ++i)
