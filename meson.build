@@ -1,7 +1,7 @@
 project(
 	'System Power Manager',
 	'c',
-	version : '2.0.1',
+	version : '2.0.2',
 	default_options : [
 		'warning_level=3',
 		'c_std=c23'
@@ -17,8 +17,13 @@ if get_option('gui')
   add_global_arguments('-DENABLE_GUI', language : 'c')
 endif
 
-version_information = '-DSPM_VERSION=' + meson.project_version()
-add_global_arguments(version_information, language : 'c')
+conf_data = configuration_data()
+conf_data.set('version', meson.project_version())
+configure_file(
+	input : 'config.h.in',
+	output : 'config.h',
+	configuration : conf_data
+)
 
 executable(
 	'spm',

@@ -1,11 +1,9 @@
 #include "util.h"
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define STRINGIFY_HELPER(x) #x
-#define STRINGIFY(x) STRINGIFY_HELPER(x)
 
 void
 die(const char *fmt, ...)
@@ -30,18 +28,14 @@ free_version(char **ptr)
 char *
 get_version(const char *name)
 {
-#ifndef SPM_VERSION
-	 #error "Version macro was not defined."
-#else
 	 size_t size = strlen(name) + 32;
 	 char *version = malloc(size * sizeof(char));
 
 	 if (!version)
 		  die("Not enough memory to show version information.");
 
-	 snprintf(version, size, "%s v%s", name, STRINGIFY(SPM_VERSION));
+	 snprintf(version, size, "%s v%s", name, SPM_VERSION);
 	 return version;
-#endif
 }
 
 /* Each verb corresponds to a DBus method. */

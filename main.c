@@ -15,7 +15,6 @@
 
 void usage(bool shouldExitAbnormally);
 
-
 int
 main(int argc, char *argv[])
 {
