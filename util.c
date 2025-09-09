@@ -27,7 +27,7 @@ free_version(char **ptr)
 	 }
 }
 
-[[nodiscard]] char *
+char *
 get_version(const char *name)
 {
 #ifndef SPM_VERSION

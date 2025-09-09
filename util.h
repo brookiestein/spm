@@ -7,7 +7,7 @@
 
 void die(const char *fmt, ...);
 void free_version(char **ptr);
-char *get_version(const char *name);
+[[nodiscard]] char *get_version(const char *name);
 const char *get_method(enum POWER_OPTION option);
 const char *get_gerund(enum POWER_OPTION option);
 
